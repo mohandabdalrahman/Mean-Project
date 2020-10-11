@@ -1,13 +1,14 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 require('./Database/db')
 const postsRoutes = require('./routes/posts')
 const app = express()
 
-// MIDDLEWARES
+// MIDDLEWARES 
 app.use(cors())
 app.use(express.json())
-
+app.use('/images', express.static(path.join('server/images')))
 // Routes
 app.use('/api/posts', postsRoutes)
 
