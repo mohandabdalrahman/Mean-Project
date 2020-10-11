@@ -1,5 +1,6 @@
 const express = require('express')
 const multer = require('multer')
+const checkAuth = require('../middleware/check-auth')
 const Post = require('../Database/schemas/post')
 
 const router = express.Router()
@@ -46,7 +47,7 @@ router.get('/:id', async (req, res) => {
 
 //INFO: ADD POST
 //INFO: single: find image in image property in req body
-router.post('', multer({ storage }).single('image'), async (req, res) => {
+router.post('', checkAuth, multer({ storage }).single('image'), async (req, res) => {
   const URL = `${req.protocol}://${req.get('host')}`
   try {
     const post = await Post.create({ ...req.body, imagePath: `${URL}/images/${req.file.filename}` })
@@ -69,7 +70,7 @@ router.get('', async (req, res) => {
     // handle pagination
     if (+pageSize && +currentPage) {
       posts = await postQuery.skip(+pageSize * (+currentPage - 1)).limit(+pageSize)
-     count = await Post.count()
+      count = await Post.count()
     }
     posts = await postQuery
     count = await Post.count()
@@ -84,7 +85,7 @@ router.get('', async (req, res) => {
 })
 
 //INFO: DELETE POST BY ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkAuth, async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id)
     res.status(204).json({
@@ -96,7 +97,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 // INFO: UPDATE POST BY ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkAuth, async (req, res) => {
   try {
     const { title, content, imagePath } = req.body
     const post = { title, content, imagePath }
