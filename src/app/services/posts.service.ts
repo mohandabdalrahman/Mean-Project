@@ -10,10 +10,7 @@ import { Router } from '@angular/router';
 export class PostsService {
   private posts: Post[] = [];
   private postsUpdated = new Subject<{ posts: Post[]; postCount: number }>();
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   getPosts(postPerPage: number, currentPage: number) {
     const queryParam = `?pageSize=${postPerPage}&currentPage=${currentPage}`;
@@ -24,14 +21,17 @@ export class PostsService {
       .pipe(
         map((postData) => {
           return {
-            posts: postData.posts.map(({ title, content, _id, imagePath }) => {
-              return {
-                title,
-                content,
-                id: _id,
-                imagePath,
-              };
-            }),
+            posts: postData.posts.map(
+              ({ title, content, _id, imagePath, creator }) => {
+                return {
+                  title,
+                  content,
+                  id: _id,
+                  imagePath,
+                  creator,
+                };
+              }
+            ),
             maxPosts: postData.count,
           };
         })
@@ -79,6 +79,7 @@ export class PostsService {
       title,
       content,
       imagePath,
+      creator: null,
     };
     this.http
       .put<{ message: string }>(`http://localhost:5000/api/posts/${id}`, post)

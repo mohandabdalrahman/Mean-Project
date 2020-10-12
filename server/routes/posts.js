@@ -50,7 +50,7 @@ router.get('/:id', async (req, res) => {
 router.post('', checkAuth, multer({ storage }).single('image'), async (req, res) => {
   const URL = `${req.protocol}://${req.get('host')}`
   try {
-    const post = await Post.create({ ...req.body, imagePath: `${URL}/images/${req.file.filename}` })
+    const post = await Post.create({ ...req.body, imagePath: `${URL}/images/${req.file.filename}`, creator: req.userData.userId }) // it will be converted to Object Id by mongoose
     res.status(201).json({
       message: 'success added',
       post
@@ -87,10 +87,16 @@ router.get('', async (req, res) => {
 //INFO: DELETE POST BY ID
 router.delete('/:id', checkAuth, async (req, res) => {
   try {
-    await Post.findByIdAndDelete(req.params.id)
-    res.status(204).json({
-      message: 'post deleted'
-    })
+    const result = await Post.deleteOne({ _id: req.params.id, creator: req.userData.userId })
+    if (result.n > 0) {
+      res.status(204).json({
+        message: 'post deleted'
+      })
+    } else {
+      res.status(401).json({
+        message: 'not authorizied'
+      })
+    }
   } catch (error) {
     console.log('error', error)
   }
@@ -100,11 +106,18 @@ router.delete('/:id', checkAuth, async (req, res) => {
 router.put('/:id', checkAuth, async (req, res) => {
   try {
     const { title, content, imagePath } = req.body
-    const post = { title, content, imagePath }
-    await Post.findByIdAndUpdate(req.params.id, post)
-    res.status(204).json({
-      message: 'post updated'
-    })
+    const post = { title, content, imagePath, creator: req.userData.userId }
+    const result = await Post.updateOne({ _id: req.params.id, creator: req.userData.userId }, post)
+    if (result.nModified > 0) {
+      res.status(204).json({
+        message: 'post updated'
+      })
+    } else {
+      res.status(401).json({
+        message: 'not authorizied'
+      })
+    }
+
   } catch (error) {
     console.log('error', error)
   }
