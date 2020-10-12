@@ -3,7 +3,8 @@ import { Subject } from 'rxjs';
 import { User } from './../models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
+import { environment } from '../../environments/environment';
+const BACKEND_URL = `${environment.apiUrl}/user`;
 @Injectable({
   providedIn: 'root',
 })
@@ -28,19 +29,21 @@ export class UserService {
 
   signUp(userData: User) {
     this.http
-      .post<{ user: User; message: string }>(
-        'http://localhost:5000/api/user/signup',
-        userData
-      )
-      .subscribe((resData) => {
-        console.log(resData);
-      });
+      .post<{ user: User; message: string }>(`${BACKEND_URL}/signup`, userData)
+      .subscribe(
+        () => {
+          this.router.navigate(['/']);
+        },
+        (error) => {
+          this.authStatusListener.next(false);
+        }
+      );
   }
 
   login(userData: User) {
     this.http
       .post<{ token: string; expiresIn: number; userId: string }>(
-        'http://localhost:5000/api/user/login',
+        `${BACKEND_URL}/login`,
         userData
       )
       .subscribe(({ token, expiresIn, userId }) => {
